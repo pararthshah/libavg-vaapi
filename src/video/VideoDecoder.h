@@ -121,7 +121,8 @@ class AVG_API VideoDecoder
         IntPoint m_Size;
 #ifdef AVG_ENABLE_VDPAU
         VDPAUDecoder* m_pVDPAUDecoder;
-#elif AVG_ENABLE_VAAPI
+#endif
+#ifdef AVG_ENABLE_VAAPI
         VAAPIDecoder* m_pVAAPIDecoder;
 #endif
         

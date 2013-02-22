@@ -30,9 +30,9 @@ using namespace std;
 namespace avg {
 
 VAAPIDecoder::VAAPIDecoder()
-    : m_PixFmt(PIX_FMT_NONE),
+    : m_SurfaceOrder(0),
       m_Size(-1,-1),
-      m_SurfaceOrder(0)
+      m_PixFmt(PIX_FMT_NONE)
 {
 }
 
@@ -150,14 +150,8 @@ int VAAPIDecoder::getBuffer(AVCodecContext* pContext, AVFrame* pFrame)
 
 void VAAPIDecoder::releaseBuffer(struct AVCodecContext* pContext, AVFrame* pFrame)
 {
-	VASurfaceID i_surface_id = (VASurfaceID)(uintptr_t)pFrame->data[0];
-
-	for(int i = 0; i < m_SurfaceCount; i++ ) {
-		VAAPISurface *p_surface = &m_pVAAPISurface[i];
-
-		if(p_surface->m_SurfaceID == i_surface_id)
-			p_surface->m_RefCount--;
-	}
+	VAAPIDecoder* pVAAPIDecoder = (VAAPIDecoder*)pContext->opaque;
+	pVAAPIDecoder->releaseBufferInternal(pContext, pFrame);
 }
 
 // main rendering routine
@@ -212,11 +206,23 @@ int VAAPIDecoder::getBufferInternal(AVCodecContext* pContext, AVFrame* pFrame)
 		pFrame->linesize[i] = 0;
 
 		if(i == 0 || i == 3)
-			pFrame->data[i] = (void*)(uintptr_t)pVaapiSurface->m_SurfaceID;
+			pFrame->data[i] = (uint8_t*)pVaapiSurface->m_SurfaceID;
 	}
 
 	pFrame->type = FF_BUFFER_TYPE_USER;
 	return 0;
+}
+
+void VAAPIDecoder::releaseBufferInternal(struct AVCodecContext* pContext, AVFrame* pFrame)
+{
+	VASurfaceID i_surface_id = (VASurfaceID)pFrame->data[0];
+
+	for(int i = 0; i < m_SurfaceCount; i++ ) {
+		VAAPISurface *p_surface = &m_pVAAPISurface[i];
+
+		if(p_surface->m_SurfaceID == i_surface_id)
+			p_surface->m_RefCount--;
+	}
 }
 
 void VAAPIDecoder::render(AVCodecContext* pContext, const AVFrame* pFrame)
@@ -255,7 +261,7 @@ void VAAPIDecoder::setupDecoder(AVCodecContext* pContext)
     	return;
     }
 
-    *pContext->hwaccel_context = NULL;
+    pContext->hwaccel_context = NULL;
     //*pi_chroma = 0;
     if( m_Size.x || m_Size.y)
     	destroySurfaces();

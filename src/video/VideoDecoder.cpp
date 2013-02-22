@@ -22,7 +22,8 @@
 #include "VideoDecoder.h"
 #ifdef AVG_ENABLE_VDPAU
 #include "VDPAUDecoder.h"
-#elif AVG_ENABLE_VAAPI
+#endif
+#ifdef AVG_ENABLE_VAAPI
 #include "VAAPIDecoder.h"
 #endif
 
@@ -57,7 +58,8 @@ VideoDecoder::VideoDecoder()
       m_Size(0,0),
 #ifdef AVG_ENABLE_VDPAU
       m_pVDPAUDecoder(0),
-#elif AVG_ENABLE_VAAPI
+#endif
+#ifdef AVG_ENABLE_VAAPI
       m_pVAAPIDecoder(0),
 #endif
       m_AStreamIndex(-1),
@@ -76,7 +78,8 @@ VideoDecoder::~VideoDecoder()
     if (m_pVDPAUDecoder) {
         delete m_pVDPAUDecoder;
     }
-#elif AVG_ENABLE_VAAPI
+#endif
+#ifdef AVG_ENABLE_VAAPI
     if (m_pVAAPIDecoder) {
     	delete m_pVAAPIDecoder;
     }
@@ -321,7 +324,8 @@ void VideoDecoder::logConfig()
     bool bVAAPIAvailable = false;
 #ifdef AVG_ENABLE_VDPAU
     bVDPAUAvailable = VDPAUDecoder::isAvailable();
-#elif AVG_ENABLE_VAAPI
+#endif
+#ifdef AVG_ENABLE_VAAPI
     bVAAPIAvailable = VAAPIDecoder::isAvailable();
 #endif
     if (bVDPAUAvailable) {
@@ -427,7 +431,8 @@ int VideoDecoder::openCodec(int streamIndex, bool bUseHardwareAcceleration)
         pContext->opaque = m_pVDPAUDecoder;
         pCodec = m_pVDPAUDecoder->openCodec(pContext);
     } 
-#elif AVG_ENABLE_VAAPI
+#endif
+#ifdef AVG_ENABLE_VAAPI
     if (bUseHardwareAcceleration) {
     	m_pVAAPIDecoder = new VAAPIDecoder();
     	pContext->opaque = m_pVAAPIDecoder;
@@ -490,7 +495,8 @@ PixelFormat VideoDecoder::calcPixelFormat(bool bUseYCbCr)
             case PIX_FMT_VDPAU_MPEG2:
             case PIX_FMT_VDPAU_WMV3:
             case PIX_FMT_VDPAU_VC1:
-#elif AVG_ENABLE_VAAPI
+#endif
+#ifdef AVG_ENABLE_VAAPI
             case PIX_FMT_VAAPI_VLD:
 #endif
                 return YCbCr420p;

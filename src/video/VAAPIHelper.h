@@ -28,8 +28,6 @@
 #include <libavcodec/vaapi.h>
 #include <boost/shared_ptr.hpp>
 
-#include "VAAPIDecoder.h"
-
 namespace avg {
 
 class VAAPISurface;
@@ -41,6 +39,8 @@ VADisplay getVAAPIDisplay();
 void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface, BitmapPtr pBmpY,
         BitmapPtr pBmpU, BitmapPtr pBmpV);
 void getBitmapFromVAAPI(VAAPISurface* pVaapiSurface, BitmapPtr pBmpDest);
+void copyPlane(uint8_t *dst, size_t dst_pitch, const uint8_t *src,
+		size_t src_pitch, unsigned width, unsigned height);
 //void unlockVAAPISurface(VAAPISurface* pVaapiSurface);
 
 }

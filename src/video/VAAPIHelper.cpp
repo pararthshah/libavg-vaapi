@@ -20,6 +20,7 @@
 //
 
 #include "VAAPIHelper.h"
+#include "VAAPIDecoder.h"
 
 #include "../base/Exception.h"
 #include "../base/ConfigMgr.h"
@@ -106,7 +107,6 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 	const uint32_t i_fourcc = pVaapiDecoder->m_Image.format.fourcc;
 	AVG_ASSERT(i_fourcc == VA_FOURCC('Y','V','1','2'))
 
-	bool b_swap_uv = i_fourcc == VA_FOURCC('I','4','2','0');
 	uint8_t *pp_plane[3];
 	size_t  pi_pitch[3];
 
@@ -126,11 +126,11 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 			pBmpU->getStride()
 	};
 
-	CopyPlane(dest[0], pitches[0], pp_plane[0], pi_pitch[0],
+	copyPlane(dest[0], pitches[0], pp_plane[0], pi_pitch[0],
 			pVaapiDecoder->m_Size.x, pVaapiDecoder->m_Size.y);
-	CopyPlane(dest[1], pitches[1], pp_plane[1], pi_pitch[1],
+	copyPlane(dest[1], pitches[1], pp_plane[1], pi_pitch[1],
 			pVaapiDecoder->m_Size.x/2, pVaapiDecoder->m_Size.y/2);
-	CopyPlane(dest[2], pitches[2], pp_plane[2], pi_pitch[2],
+	copyPlane(dest[2], pitches[2], pp_plane[2], pi_pitch[2],
 			pVaapiDecoder->m_Size.x/2, pVaapiDecoder->m_Size.y/2);
 
 	if(vaUnmapBuffer(getVAAPIDisplay(), pVaapiDecoder->m_Image.buf)) {
@@ -152,7 +152,7 @@ void getBitmapFromVAAPI(VAAPISurface* pVaapiSurface, BitmapPtr pBmpDest)
     pBmpDest->copyYUVPixels(*pBmpY, *pBmpU, *pBmpV, false);
 }
 
-void CopyPlane(uint8_t *dst, size_t dst_pitch, const uint8_t *src,
+void copyPlane(uint8_t *dst, size_t dst_pitch, const uint8_t *src,
 		size_t src_pitch, unsigned width, unsigned height) {
 	for (unsigned y = 0; y < height; y++) {
 		memcpy(dst, src, width);

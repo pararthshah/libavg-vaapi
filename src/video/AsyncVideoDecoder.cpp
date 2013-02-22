@@ -24,7 +24,8 @@
 #ifdef AVG_ENABLE_VDPAU
 #include "VDPAUDecoder.h"
 #include "VDPAUHelper.h"
-#elif AVG_ENABLE_VAAPI
+#endif
+#ifdef AVG_ENABLE_VAAPI
 #include "VAAPIDecoder.h"
 #include "VAAPIHelper.h"
 #endif
@@ -371,8 +372,9 @@ VideoMsgPtr AsyncVideoDecoder::getBmpsForTime(float timeWanted,
                     vdpau_render_state* pRenderState = pFrameMsg->getRenderState();
                     pRenderState->state &= ~FF_VDPAU_STATE_USED_FOR_REFERENCE;
                     unlockVDPAUSurface(pRenderState);
-#elif AVG_ENABLE_VAAPI
-                    void* pVaapiSurface = pFrameMsg->getVaapiSurface();
+#endif
+#ifdef AVG_ENABLE_VAAPI
+                    //void* pVaapiSurface = pFrameMsg->getVaapiSurface();
 
 #endif
                 }

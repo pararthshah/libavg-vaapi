@@ -212,6 +212,7 @@ if test "$enable_vdpau" = yes; then
 	AC_CHECK_HEADERS([libavcodec/vdpau.h],let vdpau_h1=1,let vdpau_h1=0)
 	AC_CHECK_HEADERS([vdpau/vdpau.h],let vdpau_h2=1,let vdpau_h2=0)
 	if [[ $vdpau_lib -eq 1 ]] && [[ $vdpau_h1 -eq 1 ]] && [[ $vdpau_h2 -eq 1 ]]; then
+	  AC_MSG_NOTICE([Using VDPAU])
   	  AC_DEFINE(AVG_ENABLE_VDPAU, 1, [Enable VDPAU support])
   	  LIBVIDEO_LDADD="-lvdpau"
       AM_CONDITIONAL(USE_VDPAU_SRC, true)
@@ -220,6 +221,8 @@ if test "$enable_vdpau" = yes; then
   	  AM_CONDITIONAL(USE_VDPAU_SRC, false)
 	fi
 	AC_SUBST([LIBVIDEO_LDADD])
+else
+AM_CONDITIONAL(USE_VDPAU_SRC, false) 
 fi
 
 AC_ARG_ENABLE(vaapi,
@@ -232,6 +235,7 @@ if test "$enable_vaapi" = yes; then
 	AC_CHECK_HEADERS([libavcodec/vaapi.h],let va_h1=1,let va_h1=0)
 	AC_CHECK_HEADERS([va/va.h],let va_h2=1,let va_h2=0)
 	if [[ $va_lib -eq 1 ]] && [[ $va_h1 -eq 1 ]] && [[ $va_h2 -eq 1 ]]; then
+	  AC_MSG_NOTICE([Using VAAPI])
   	  AC_DEFINE(AVG_ENABLE_VAAPI, 1, [Enable VA-API support])
   	  LIBVIDEO_LDADD="-lva"
       AM_CONDITIONAL(USE_VAAPI_SRC, true)
@@ -240,6 +244,8 @@ if test "$enable_vaapi" = yes; then
   	  AM_CONDITIONAL(USE_VAAPI_SRC, false)
 	fi
 	AC_SUBST([LIBVIDEO_LDADD])
+else
+AM_CONDITIONAL(USE_VAAPI_SRC, false)	
 fi
 
 AM_CONDITIONAL(APPLE, test $target_vendor = apple)

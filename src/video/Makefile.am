@@ -41,7 +41,7 @@ if USE_VDPAU_SRC
         libvideo_la_SOURCES += VDPAUDecoder.cpp VDPAUHelper.cpp
 endif
 
-if USE_VDPAU_SRC
+if USE_VAAPI_SRC
         libvideo_la_SOURCES += VAAPIDecoder.cpp VAAPIHelper.cpp
 endif
 

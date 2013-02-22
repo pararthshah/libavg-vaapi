@@ -30,12 +30,15 @@
 #include <va/va.h>
 #include <libavcodec/vaapi.h>
 
+#include "VAAPIHelper.h"
+
 namespace avg {
 
 class VAAPIDecoder; // Forward declaration
 
 class VAAPISurface
 {
+public:
     VASurfaceID  m_SurfaceID;
     int          m_RefCount;
     unsigned int m_Order;
@@ -63,6 +66,7 @@ private:
 
     VAAPISurface* getFreeVaapiSurface();
     int getBufferInternal(AVCodecContext* pContext, AVFrame* pFrame);
+    void releaseBufferInternal(struct AVCodecContext* pContext, AVFrame* pFrame);
     void render(AVCodecContext* pContext, const AVFrame* pFrame);
     void setupDecoder(AVCodecContext* pContext);
     void createSurfaces(AVCodecContext* pContext);
@@ -87,6 +91,8 @@ private:
 
     AVPixelFormat  m_PixFmt;
 
+    friend void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
+    		BitmapPtr pBmpY, BitmapPtr pBmpU, BitmapPtr pBmpV);
 };
 
 }
