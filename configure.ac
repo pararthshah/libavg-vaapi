@@ -202,18 +202,45 @@ AC_SUBST([LIBXINERAMA_LDADD])
 
 AM_PATH_SDL(1.2.10,:,AC_MSG_ERROR([libSDL not found. Aborting.]))
 
-AC_CHECK_LIB([vdpau],[main],let vdpau_lib=1,let vdpau_lib=0)
-AC_CHECK_HEADERS([libavcodec/vdpau.h],let vdpau_h1=1,let vdpau_h1=0)
-AC_CHECK_HEADERS([vdpau/vdpau.h],let vdpau_h2=1,let vdpau_h2=0)
-if [[ $vdpau_lib -eq 1 ]] && [[ $vdpau_h1 -eq 1 ]] && [[ $vdpau_h2 -eq 1 ]]; then
-  AC_DEFINE(AVG_ENABLE_VDPAU, 1, [Enable VDPAU support])
-  LIBVIDEO_LDADD="-lvdpau"
-  AM_CONDITIONAL(USE_VDPAU_SRC, true)
-else
-  LIBVIDEO_LDADD=""
-  AM_CONDITIONAL(USE_VDPAU_SRC, false)
+AC_ARG_ENABLE(vdpau,
+        AC_HELP_STRING([--enable-vdpau], [enable HW acceleration using VDPAU [default=no]]),
+        ,
+        enable_vdpau=no)
+
+if test "$enable_vdpau" = yes; then        
+	AC_CHECK_LIB([vdpau],[main],let vdpau_lib=1,let vdpau_lib=0)
+	AC_CHECK_HEADERS([libavcodec/vdpau.h],let vdpau_h1=1,let vdpau_h1=0)
+	AC_CHECK_HEADERS([vdpau/vdpau.h],let vdpau_h2=1,let vdpau_h2=0)
+	if [[ $vdpau_lib -eq 1 ]] && [[ $vdpau_h1 -eq 1 ]] && [[ $vdpau_h2 -eq 1 ]]; then
+  	  AC_DEFINE(AVG_ENABLE_VDPAU, 1, [Enable VDPAU support])
+  	  LIBVIDEO_LDADD="-lvdpau"
+      AM_CONDITIONAL(USE_VDPAU_SRC, true)
+	else
+  	  LIBVIDEO_LDADD=""
+  	  AM_CONDITIONAL(USE_VDPAU_SRC, false)
+	fi
+	AC_SUBST([LIBVIDEO_LDADD])
 fi
-AC_SUBST([LIBVIDEO_LDADD])
+
+AC_ARG_ENABLE(vaapi,
+        AC_HELP_STRING([--enable-vaapi], [enable HW acceleration using VA-API [default=no]]),
+        ,
+        enable_vaapi=no)
+
+if test "$enable_vaapi" = yes; then        
+	AC_CHECK_LIB([va],[main],let va_lib=1,let va_lib=0)
+	AC_CHECK_HEADERS([libavcodec/vaapi.h],let va_h1=1,let va_h1=0)
+	AC_CHECK_HEADERS([va/va.h],let va_h2=1,let va_h2=0)
+	if [[ $va_lib -eq 1 ]] && [[ $va_h1 -eq 1 ]] && [[ $va_h2 -eq 1 ]]; then
+  	  AC_DEFINE(AVG_ENABLE_VAAPI, 1, [Enable VA-API support])
+  	  LIBVIDEO_LDADD="-lva"
+      AM_CONDITIONAL(USE_VAAPI_SRC, true)
+	else
+  	  LIBVIDEO_LDADD=""
+  	  AM_CONDITIONAL(USE_VAAPI_SRC, false)
+	fi
+	AC_SUBST([LIBVIDEO_LDADD])
+fi
 
 AM_CONDITIONAL(APPLE, test $target_vendor = apple)
 

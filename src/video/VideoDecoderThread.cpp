@@ -36,7 +36,7 @@ namespace avg {
 
 VideoDecoderThread::VideoDecoderThread(CQueue& cmdQ, VideoMsgQueue& msgQ, 
         VideoMsgQueue& packetQ, AVStream* pStream, const IntPoint& size, PixelFormat pf, 
-        bool bUseVDPAU)
+        bool bUseVDPAU, bool bUseVAAPI)
     : WorkerThread<VideoDecoderThread>(string("Video Decoder"), cmdQ, 
             Logger::category::PROFILE_VIDEO),
       m_MsgQ(msgQ),
@@ -46,6 +46,7 @@ VideoDecoderThread::VideoDecoderThread(CQueue& cmdQ, VideoMsgQueue& msgQ,
       m_Size(size),
       m_PF(pf),
       m_bUseVDPAU(bUseVDPAU),
+      m_bUseVAAPI(bUseVAAPI),
       m_bSeekDone(false),
       m_bProcessingLastFrames(false)
 {
@@ -152,6 +153,9 @@ void VideoDecoderThread::sendFrame(AVFrame& frame)
     if (m_bUseVDPAU) {
         vdpau_render_state *pRenderState = (vdpau_render_state *)frame.data[0];
         pMsg->setVDPAUFrame(pRenderState, m_pFrameDecoder->getCurTime());
+    } else if (m_bUseVAAPI) {
+    	void *pVaapiSurface = (void *)frame.data[0];
+    	pMsg->setVAAPIFrame(pVaapiSurface, m_pFrameDecoder->getCurTime());
     } else {
         vector<BitmapPtr> pBmps;
         if (pixelFormatIsPlanar(m_PF)) {

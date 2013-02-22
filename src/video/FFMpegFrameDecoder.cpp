@@ -23,6 +23,8 @@
 #include "FFMpegDemuxer.h"
 #ifdef AVG_ENABLE_VDPAU
 #include "VDPAUDecoder.h"
+#elif AVG_ENABLE_VAAPI
+#include "VAAPIDecoder.h"
 #endif
 
 #include "../base/Exception.h"

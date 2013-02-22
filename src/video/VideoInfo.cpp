@@ -43,7 +43,7 @@ VideoInfo::VideoInfo(string sContainerFormat, float duration, int bitrate, bool 
 
 void VideoInfo::setVideoData(const IntPoint& size, const string& sPixelFormat,
         int numFrames, float streamFPS, const string& sVCodec,
-        bool bUsesVDPAU, float duration)
+        bool bUsesVDPAU, bool bUsesVAAPI, float duration)
 {
     AVG_ASSERT(m_bHasVideo);
     m_Size = size;
@@ -52,6 +52,7 @@ void VideoInfo::setVideoData(const IntPoint& size, const string& sPixelFormat,
     m_StreamFPS = streamFPS;
     m_sVCodec = sVCodec;
     m_bUsesVDPAU = bUsesVDPAU;
+    m_bUsesVAAPI = bUsesVAAPI;
     m_VideoDuration = duration;
 }
 

@@ -40,6 +40,7 @@ public:
     VideoMsg();
     void setFrame(const std::vector<BitmapPtr>& pBmps, float frameTime);
     void setVDPAUFrame(vdpau_render_state* m_pRenderState, float frameTime);
+    void setVAAPIFrame(void* m_pVaapiSurface, float frameTime);
     void setPacket(AVPacket* pPacket);
 
     virtual ~VideoMsg();
@@ -50,6 +51,7 @@ public:
     void freePacket();
 
     vdpau_render_state* getRenderState();
+    void* getVaapiSurface();
 
 private:
     // FRAME
@@ -59,6 +61,9 @@ private:
     // VDPAU_FRAME
     vdpau_render_state* m_pRenderState;
     
+    // VAAPI_FRAME
+    void* m_pVaapiSurface;
+
     // PACKET
     AVPacket * m_pPacket;
 };

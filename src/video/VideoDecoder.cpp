@@ -22,6 +22,8 @@
 #include "VideoDecoder.h"
 #ifdef AVG_ENABLE_VDPAU
 #include "VDPAUDecoder.h"
+#elif AVG_ENABLE_VAAPI
+#include "VAAPIDecoder.h"
 #endif
 
 #include "../base/Exception.h"
@@ -55,6 +57,8 @@ VideoDecoder::VideoDecoder()
       m_Size(0,0),
 #ifdef AVG_ENABLE_VDPAU
       m_pVDPAUDecoder(0),
+#elif AVG_ENABLE_VAAPI
+      m_pVAAPIDecoder(0),
 #endif
       m_AStreamIndex(-1),
       m_pAStream(0)
@@ -71,6 +75,10 @@ VideoDecoder::~VideoDecoder()
 #ifdef AVG_ENABLE_VDPAU
     if (m_pVDPAUDecoder) {
         delete m_pVDPAUDecoder;
+    }
+#elif AVG_ENABLE_VAAPI
+    if (m_pVAAPIDecoder) {
+    	delete m_pVAAPIDecoder;
     }
 #endif
     ObjectCounter::get()->decRef(&typeid(*this));
@@ -253,7 +261,7 @@ VideoInfo VideoDecoder::getVideoInfo() const
             m_pVStream != 0, m_pAStream != 0);
     if (m_pVStream) {
         info.setVideoData(m_Size, getStreamPF(), getNumFrames(), getStreamFPS(),
-                m_pVStream->codec->codec->name, usesVDPAU(), getDuration(SS_VIDEO));
+                m_pVStream->codec->codec->name, usesVDPAU(), usesVAAPI(), getDuration(SS_VIDEO));
     }
     if (m_pAStream) {
         AVCodecContext * pACodec = m_pAStream->codec;
@@ -310,12 +318,18 @@ FrameAvailableCode VideoDecoder::renderToTexture(GLTexturePtr pTextures[4],
 void VideoDecoder::logConfig()
 {
     bool bVDPAUAvailable = false;
+    bool bVAAPIAvailable = false;
 #ifdef AVG_ENABLE_VDPAU
     bVDPAUAvailable = VDPAUDecoder::isAvailable();
+#elif AVG_ENABLE_VAAPI
+    bVAAPIAvailable = VAAPIDecoder::isAvailable();
 #endif
     if (bVDPAUAvailable) {
+            AVG_TRACE(Logger::category::CONFIG, Logger::severity::INFO,
+                    "Hardware video acceleration: VDPAU");
+    } else if (bVAAPIAvailable) {
         AVG_TRACE(Logger::category::CONFIG, Logger::severity::INFO,
-                "Hardware video acceleration: VDPAU");
+                "Hardware video acceleration: VAAPI");
     } else {
         AVG_TRACE(Logger::category::CONFIG, Logger::severity::INFO,
                 "Hardware video acceleration: Off");
@@ -344,6 +358,16 @@ bool VideoDecoder::usesVDPAU() const
 #ifdef AVG_ENABLE_VDPAU
     AVCodecContext const* pContext = getCodecContext();
     return pContext->codec && (pContext->codec->capabilities & CODEC_CAP_HWACCEL_VDPAU);
+#else
+    return false;
+#endif
+}
+
+bool VideoDecoder::usesVAAPI() const
+{
+#ifdef AVG_ENABLE_VAAPI
+    AVCodecContext const* pContext = getCodecContext();
+    return pContext->codec && (pContext->codec->capabilities & CODEC_CAP_HWACCEL);
 #else
     return false;
 #endif
@@ -403,6 +427,12 @@ int VideoDecoder::openCodec(int streamIndex, bool bUseHardwareAcceleration)
         pContext->opaque = m_pVDPAUDecoder;
         pCodec = m_pVDPAUDecoder->openCodec(pContext);
     } 
+#elif AVG_ENABLE_VAAPI
+    if (bUseHardwareAcceleration) {
+    	m_pVAAPIDecoder = new VAAPIDecoder();
+    	pContext->opaque = m_pVAAPIDecoder;
+    	pCodec = m_pVAAPIDecoder->openCodec(pContext);
+    }
 #endif
     if (!pCodec) {
         pCodec = avcodec_find_decoder(pContext->codec_id);
@@ -460,6 +490,8 @@ PixelFormat VideoDecoder::calcPixelFormat(bool bUseYCbCr)
             case PIX_FMT_VDPAU_MPEG2:
             case PIX_FMT_VDPAU_WMV3:
             case PIX_FMT_VDPAU_VC1:
+#elif AVG_ENABLE_VAAPI
+            case PIX_FMT_VAAPI_VLD:
 #endif
                 return YCbCr420p;
             case PIX_FMT_YUVJ420P:

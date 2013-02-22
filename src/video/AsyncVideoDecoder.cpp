@@ -24,6 +24,9 @@
 #ifdef AVG_ENABLE_VDPAU
 #include "VDPAUDecoder.h"
 #include "VDPAUHelper.h"
+#elif AVG_ENABLE_VAAPI
+#include "VAAPIDecoder.h"
+#include "VAAPIHelper.h"
 #endif
 
 #include "../base/ObjectCounter.h"
@@ -109,7 +112,7 @@ void AsyncVideoDecoder::startDecoding(bool bDeliverYCbCr, const AudioParams* pAP
 
         m_pVDecoderThread = new boost::thread(VideoDecoderThread(
                 *m_pVCmdQ, *m_pVMsgQ, packetQ, getVideoStream(), 
-                getSize(), getPixelFormat(), usesVDPAU()));
+                getSize(), getPixelFormat(), usesVDPAU(), usesVAAPI()));
     }
     
     if (getVideoInfo().m_bHasAudio) {
@@ -211,6 +214,7 @@ void AsyncVideoDecoder::setFPS(float fps)
 }
 
 static ProfilingZoneID VDPAUDecodeProfilingZone("AsyncVideoDecoder: VDPAU", true);
+static ProfilingZoneID VAAPIDecodeProfilingZone("AsyncVideoDecoder: VAAPI", true);
 
 FrameAvailableCode AsyncVideoDecoder::renderToBmps(vector<BitmapPtr>& pBmps,
         float timeWanted)
@@ -237,6 +241,16 @@ FrameAvailableCode AsyncVideoDecoder::renderToBmps(vector<BitmapPtr>& pBmps,
                 getPlanesFromVDPAU(pRenderState, pBmps[0], pBmps[1], pBmps[2]);
             } else {
                 getBitmapFromVDPAU(pRenderState, pBmps[0]);
+            }
+#endif
+        } else if (pFrameMsg->getType() == VideoMsg::VAAPI_FRAME) {
+#ifdef AVG_ENABLE_VAAPI
+            ScopeTimer timer(VAAPIDecodeProfilingZone);
+            VAAPISurface* pVaapiSurface = (VAAPISurface*) pFrameMsg->getVaapiSurface();
+            if (pixelFormatIsPlanar(getPixelFormat())) {
+                getPlanesFromVAAPI(pVaapiSurface, pBmps[0], pBmps[1], pBmps[2]);
+            } else {
+                getBitmapFromVAAPI(pVaapiSurface, pBmps[0]);
             }
 #endif
         } else {
@@ -357,6 +371,9 @@ VideoMsgPtr AsyncVideoDecoder::getBmpsForTime(float timeWanted,
                     vdpau_render_state* pRenderState = pFrameMsg->getRenderState();
                     pRenderState->state &= ~FF_VDPAU_STATE_USED_FOR_REFERENCE;
                     unlockVDPAUSurface(pRenderState);
+#elif AVG_ENABLE_VAAPI
+                    void* pVaapiSurface = pFrameMsg->getVaapiSurface();
+
 #endif
                 }
             }

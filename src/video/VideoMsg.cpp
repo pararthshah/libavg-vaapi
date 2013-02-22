@@ -49,7 +49,14 @@ void VideoMsg::setVDPAUFrame(vdpau_render_state* pRenderState, float frameTime)
     m_pRenderState = pRenderState;
     m_FrameTime = frameTime;
 }
-    
+
+void VideoMsg::setVAAPIFrame(void* pVaapiSurface, float frameTime)
+{
+    setType(VAAPI_FRAME);
+    m_pVaapiSurface = pVaapiSurface;
+    m_FrameTime = frameTime;
+}
+
 void VideoMsg::setPacket(AVPacket* pPacket)
 {
     setType(PACKET);
@@ -88,6 +95,12 @@ vdpau_render_state* VideoMsg::getRenderState()
 {
     AVG_ASSERT(getType() == VDPAU_FRAME);
     return m_pRenderState;
+}
+
+void* VideoMsg::getVaapiSurface()
+{
+    AVG_ASSERT(getType() == VAAPI_FRAME);
+    return m_pVaapiSurface;
 }
 
 }

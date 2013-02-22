@@ -37,6 +37,7 @@
 #include <boost/thread/mutex.hpp>
 
 struct vdpau_render_state;
+struct vaapi_context;
 
 namespace avg {
 
@@ -45,6 +46,7 @@ typedef boost::shared_ptr<Bitmap> BitmapPtr;
 class GLTexture;
 typedef boost::shared_ptr<GLTexture> GLTexturePtr;
 class VDPAUDecoder;
+class VAAPIDecoder;
 
 enum FrameAvailableCode {
     FA_NEW_FRAME, FA_USE_LAST_FRAME, FA_STILL_DECODING
@@ -92,6 +94,7 @@ class AVG_API VideoDecoder
         int getNumFrames() const;
         AVFormatContext* getFormatContext();
         bool usesVDPAU() const;
+        bool usesVAAPI() const;
         AVCodecContext const * getCodecContext() const;
         AVCodecContext * getCodecContext();
 
@@ -118,6 +121,8 @@ class AVG_API VideoDecoder
         IntPoint m_Size;
 #ifdef AVG_ENABLE_VDPAU
         VDPAUDecoder* m_pVDPAUDecoder;
+#elif AVG_ENABLE_VAAPI
+        VAAPIDecoder* m_pVAAPIDecoder;
 #endif
         
         // Audio

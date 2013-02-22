@@ -20,6 +20,10 @@ if USE_VDPAU_SRC
         ALL_H += VDPAUDecoder.h VDPAUHelper.h
 endif
 
+if USE_VAAPI_SRC
+		ALL_H += VAAPIDecoder.h VAAPIHelper.h
+endif
+
 TESTS=testvideo
 
 EXTRA_DIST = $(wildcard baseline/*.png)
@@ -35,6 +39,10 @@ libvideo_la_SOURCES = FFMpegDemuxer.cpp VideoDemuxerThread.cpp VideoDecoder.cpp 
 
 if USE_VDPAU_SRC
         libvideo_la_SOURCES += VDPAUDecoder.cpp VDPAUHelper.cpp
+endif
+
+if USE_VDPAU_SRC
+        libvideo_la_SOURCES += VAAPIDecoder.cpp VAAPIHelper.cpp
 endif
 
 libvideo_la_LIBADD = @LIBVIDEO_LDADD@
