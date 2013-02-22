@@ -54,6 +54,10 @@ public:
 
     static bool isAvailable();
 
+    VAContextID getContext();
+    VAImage getImage();
+    IntPoint getSize();
+
 private:
     // Callbacks
     static int getBuffer(AVCodecContext* pContext, AVFrame* pFrame);
@@ -89,8 +93,6 @@ private:
 
     AVPixelFormat  m_PixFmt;
 
-    friend void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
-    		BitmapPtr pBmpY, BitmapPtr pBmpU, BitmapPtr pBmpV);
 };
 
 }

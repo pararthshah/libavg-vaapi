@@ -142,6 +142,21 @@ bool VAAPIDecoder::isAvailable()
 #endif
 }
 
+VAContextID VAAPIDecoder::getContext()
+{
+	return m_ContextID;
+}
+
+VAImage VAAPIDecoder::getImage()
+{
+	return m_Image;
+}
+
+IntPoint VAAPIDecoder::getSize()
+{
+	return m_Size;
+}
+
 int VAAPIDecoder::getBuffer(AVCodecContext* pContext, AVFrame* pFrame)
 {
     VAAPIDecoder* pVAAPIDecoder = (VAAPIDecoder*)pContext->opaque;

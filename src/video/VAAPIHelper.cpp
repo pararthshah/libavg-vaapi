@@ -80,7 +80,7 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 #if VA_CHECK_VERSION(0,31,0)
 	if(vaSyncSurface(getVAAPIDisplay(), pVaapiSurface->m_SurfaceID)) {
 #else
-	if(vaSyncSurface(getVAAPIDisplay(), pHWCtx->context_id,
+	if(vaSyncSurface(getVAAPIDisplay(), pVaapiDecoder->getContext(),
 			pVaapiSurface->m_SurfaceID)) {
 #endif
 		AVG_ASSERT_MSG(false, "vaSyncSurface returned error");
@@ -91,28 +91,28 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 	 * my setup.
 	 */
 
-	if(vaGetImage(getVAAPIDisplay(), surface_id, 0, 0, pVaapiDecoder->m_Size.x,
-			pVaapiDecoder->m_Size.y, pVaapiDecoder->m_Image.image_id) ) {
+	if(vaGetImage(getVAAPIDisplay(), surface_id, 0, 0, pVaapiDecoder->getSize().x,
+			pVaapiDecoder->getSize().y, pVaapiDecoder->getImage().image_id) ) {
 		AVG_ASSERT_MSG(false, "vaGetImage returned error");
 		return;
 	}
 
 	void *p_base;
-	if(vaMapBuffer(getVAAPIDisplay(), pVaapiDecoder->m_Image.buf,
+	if(vaMapBuffer(getVAAPIDisplay(), pVaapiDecoder->getImage().buf,
 			&p_base)) {
 		AVG_ASSERT_MSG(false, "vaMapBuffer returned error");
 		return;
 	}
 
-	const uint32_t i_fourcc = pVaapiDecoder->m_Image.format.fourcc;
+	const uint32_t i_fourcc = pVaapiDecoder->getImage().format.fourcc;
 	AVG_ASSERT(i_fourcc == VA_FOURCC('Y','V','1','2'))
 
 	uint8_t *pp_plane[3];
 	size_t  pi_pitch[3];
 
 	for( int i = 0; i < 3; i++ ) {
-		pp_plane[i] = (uint8_t*)p_base + pVaapiDecoder->m_Image.offsets[i];
-		pi_pitch[i] = pVaapiDecoder->m_Image.pitches[i];
+		pp_plane[i] = (uint8_t*)p_base + pVaapiDecoder->getImage().offsets[i];
+		pi_pitch[i] = pVaapiDecoder->getImage().pitches[i];
 	}
 
 	uint8_t *dest[3] = {
@@ -127,13 +127,13 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 	};
 
 	copyPlane(dest[0], pitches[0], pp_plane[0], pi_pitch[0],
-			pVaapiDecoder->m_Size.x, pVaapiDecoder->m_Size.y);
+			pVaapiDecoder->getSize().x, pVaapiDecoder->getSize().y);
 	copyPlane(dest[1], pitches[1], pp_plane[1], pi_pitch[1],
-			pVaapiDecoder->m_Size.x/2, pVaapiDecoder->m_Size.y/2);
+			pVaapiDecoder->getSize().x/2, pVaapiDecoder->getSize().y/2);
 	copyPlane(dest[2], pitches[2], pp_plane[2], pi_pitch[2],
-			pVaapiDecoder->m_Size.x/2, pVaapiDecoder->m_Size.y/2);
+			pVaapiDecoder->getSize().x/2, pVaapiDecoder->getSize().y/2);
 
-	if(vaUnmapBuffer(getVAAPIDisplay(), pVaapiDecoder->m_Image.buf)) {
+	if(vaUnmapBuffer(getVAAPIDisplay(), pVaapiDecoder->getImage().buf)) {
 		AVG_ASSERT_MSG(false, "vaUnmapBuffer returned error");
 		return;
 	}
