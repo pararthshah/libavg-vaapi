@@ -30,8 +30,6 @@
 #include <va/va.h>
 #include <libavcodec/vaapi.h>
 
-#include "VAAPIHelper.h"
-
 namespace avg {
 
 class VAAPIDecoder; // Forward declaration
