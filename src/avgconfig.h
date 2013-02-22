@@ -95,10 +95,10 @@
 #define HAVE_X11_EXTENSIONS_XINERAMA_H 1
 
 /* XI2_1 available */
-#define HAVE_XI2_1 1
+/* #undef HAVE_XI2_1 */
 
 /* XI2_2 available */
-/* #undef HAVE_XI2_2 */
+#define HAVE_XI2_2 1
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */

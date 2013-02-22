@@ -4,8 +4,8 @@
 #define AVG_VERSION_RELEASE     "1.7.1"
 #define AVG_VERSION_FULL        "1.7.1"
 #define AVG_VERSION_BRANCH_URL  ""
-#define AVG_VERSION_BUILDER     "pararth@pararth-ka-lappy Linux-3.0.0-30-generic-pae-i686-with-Ubuntu-11.10-oneiric"
-#define AVG_VERSION_BUILDTIME   "2013-02-22T21:10:37.384243"
+#define AVG_VERSION_BUILDER     "vijay@vijay-Desktop Linux-3.2.0-37-generic-i686-with-Ubuntu-12.04-precise"
+#define AVG_VERSION_BUILDTIME   "2013-02-23T00:16:32.311781"
 #define AVG_VERSION_REVISION    0
 #define AVG_VERSION_MAJOR       1
 #define AVG_VERSION_MINOR       7
