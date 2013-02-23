@@ -468,7 +468,7 @@ void VideoNode::open()
     m_bSeekPending = false;
     m_bFirstFrameDecoded = false;
     m_bFrameAvailable = false;
-    m_bUsesHardwareAcceleration = videoInfo.m_bUsesVDPAU;
+    m_bUsesHardwareAcceleration = videoInfo.m_bUsesVDPAU || videoInfo.m_bUsesVAAPI;
     setViewport(-32767, -32767, -32767, -32767);
 }
 
