@@ -41,6 +41,9 @@
 #ifdef AVG_ENABLE_VDPAU
 #include "../video/VDPAUDecoder.h"
 #endif
+#ifdef AVG_ENABLE_VAAPI
+#include "../video/VAAPIDecoder.h"
+#endif
 
 #include <iostream>
 #include <sstream>
@@ -690,6 +693,11 @@ VideoNode::VideoAccelType VideoNode::getVideoAccelConfig()
 #ifdef AVG_ENABLE_VDPAU
     if (VDPAUDecoder::isAvailable()) {
         return VDPAU;
+    }
+#endif
+#ifdef AVG_ENABLE_VAAPI
+    if (VAAPIDecoder::isAvailable()) {
+    	return VAAPI;
     }
 #endif
     return NONE;
