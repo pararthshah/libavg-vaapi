@@ -24,6 +24,7 @@
 
 #include "../base/Exception.h"
 #include "../base/ConfigMgr.h"
+#include "../base/Logger.h"
 
 #include "../graphics/Bitmap.h"
 
@@ -105,6 +106,7 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 	}
 
 	const uint32_t i_fourcc = pVaapiDecoder->getImage().format.fourcc;
+	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getPlanesFromVAAPI: " << i_fourcc);
 	AVG_ASSERT(i_fourcc == VA_FOURCC('Y','V','1','2'))
 
 	uint8_t *pp_plane[3];
