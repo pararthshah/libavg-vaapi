@@ -105,18 +105,6 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 		return;
 	}
 
-	const uint32_t i_fourcc = pVaapiDecoder->getImage().format.fourcc;
-	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getPlanesFromVAAPI: " << i_fourcc);
-	AVG_ASSERT(i_fourcc == VA_FOURCC('Y','V','1','2'))
-
-	uint8_t *pp_plane[3];
-	size_t  pi_pitch[3];
-
-	for( int i = 0; i < 3; i++ ) {
-		pp_plane[i] = (uint8_t*)p_base + pVaapiDecoder->getImage().offsets[i];
-		pi_pitch[i] = pVaapiDecoder->getImage().pitches[i];
-	}
-
 	uint8_t *dest[3] = {
 			pBmpY->getPixels(),
 			pBmpV->getPixels(),
@@ -128,12 +116,44 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 			pBmpU->getStride()
 	};
 
-	copyPlane(dest[0], pitches[0], pp_plane[0], pi_pitch[0],
-			pVaapiDecoder->getSize().x, pVaapiDecoder->getSize().y);
-	copyPlane(dest[1], pitches[1], pp_plane[1], pi_pitch[1],
-			pVaapiDecoder->getSize().x/2, pVaapiDecoder->getSize().y/2);
-	copyPlane(dest[2], pitches[2], pp_plane[2], pi_pitch[2],
-			pVaapiDecoder->getSize().x/2, pVaapiDecoder->getSize().y/2);
+	const uint32_t i_fourcc = pVaapiDecoder->getImage().format.fourcc;
+	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getPlanesFromVAAPI: " << i_fourcc);
+
+	if(i_fourcc == VA_FOURCC('Y','V','1','2') ||
+			i_fourcc == VA_FOURCC('I','4','2','0')) {
+		bool b_swap_uv = i_fourcc == VA_FOURCC('I','4','2','0');
+		uint8_t *pp_plane[3];
+		size_t  pi_pitch[3];
+
+		for( int i = 0; i < 3; i++ ) {
+			pp_plane[i] = (uint8_t*)p_base + pVaapiDecoder->getImage().offsets[i];
+			pi_pitch[i] = pVaapiDecoder->getImage().pitches[i];
+		}
+
+		copyPlane(dest[0], pitches[0], pp_plane[0], pi_pitch[0],
+				pVaapiDecoder->getSize().x, pVaapiDecoder->getSize().y);
+		copyPlane(dest[1], pitches[1], pp_plane[1], pi_pitch[1],
+				pVaapiDecoder->getSize().x/2, pVaapiDecoder->getSize().y/2);
+		copyPlane(dest[2], pitches[2], pp_plane[2], pi_pitch[2],
+				pVaapiDecoder->getSize().x/2, pVaapiDecoder->getSize().y/2);
+	}
+	else
+	{
+		assert( i_fourcc == VA_FOURCC('N','V','1','2') );
+		uint8_t *pp_plane[2];
+		size_t  pi_pitch[2];
+
+		for(int i = 0; i < 2; i++) {
+			pp_plane[i] = (uint8_t*)p_base + pVaapiDecoder->getImage().offsets[i];
+			pi_pitch[i] = pVaapiDecoder->getImage().pitches[i];
+		}
+
+		copyPlane(dest[0], pitches[0], pp_plane[0], pi_pitch[0],
+				pVaapiDecoder->getSize().x, pVaapiDecoder->getSize().y);
+		splitPlanes(dest[2], pitches[2], dest[1], pitches[1],
+				pp_plane[1], pi_pitch[1],
+				pVaapiDecoder->getSize().x/2, pVaapiDecoder->getSize().y/2);
+	}
 
 	if(vaUnmapBuffer(getVAAPIDisplay(), pVaapiDecoder->getImage().buf)) {
 		AVG_ASSERT_MSG(false, "vaUnmapBuffer returned error");
@@ -161,6 +181,20 @@ void copyPlane(uint8_t *dst, size_t dst_pitch, const uint8_t *src,
 		src += src_pitch;
 		dst += dst_pitch;
 	}
+}
+
+void splitPlanes(uint8_t *dstu, size_t dstu_pitch, uint8_t *dstv,
+		size_t dstv_pitch, const uint8_t *src, size_t src_pitch,
+        unsigned width, unsigned height) {
+    for (unsigned y = 0; y < height; y++) {
+        for (unsigned x = 0; x < width; x++) {
+            dstu[x] = src[2*x+0];
+            dstv[x] = src[2*x+1];
+        }
+        src  += src_pitch;
+        dstu += dstu_pitch;
+        dstv += dstv_pitch;
+    }
 }
 
 /*void unlockVAAPISurface(VAAPISurface* pVaapiSurface)
