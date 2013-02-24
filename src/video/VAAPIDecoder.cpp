@@ -32,6 +32,7 @@ namespace avg {
 VAAPIDecoder::VAAPIDecoder()
     : m_SurfaceOrder(0),
       m_Size(-1,-1),
+      m_pVAAPISurface(NULL),
       m_PixFmt(PIX_FMT_NONE)
 {
 }
@@ -212,6 +213,7 @@ VAAPISurface* VAAPIDecoder::getFreeVaapiSurface()
 
 int VAAPIDecoder::getBufferInternal(AVCodecContext* pContext, AVFrame* pFrame)
 {
+	if (m_pVAAPISurface == NULL) setupDecoder(pContext);
 	VAAPISurface* pVaapiSurface = getFreeVaapiSurface();
 	pVaapiSurface->m_RefCount = 1;
 	pVaapiSurface->m_Order = m_SurfaceOrder++;
