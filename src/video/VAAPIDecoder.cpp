@@ -72,41 +72,39 @@ AVCodec* VAAPIDecoder::openCodec(AVCodecContext* pContext)
         case CODEC_ID_MPEG2VIDEO:
         	m_Profile = VAProfileMPEG2Main;
         	m_SurfaceCount = 2+1;
-            pCodec = avcodec_find_decoder_by_name("mpeg2_vaapi");
-            pCodec->id = CODEC_ID_MPEG2VIDEO;
+            //pCodec = avcodec_find_decoder_by_name("mpeg2_vaapi");
+            //pCodec->id = CODEC_ID_MPEG2VIDEO;
             break;
         case CODEC_ID_MPEG4:
         	m_Profile = VAProfileMPEG4AdvancedSimple;
         	m_SurfaceCount = 2+1;
-            pCodec = avcodec_find_decoder_by_name("mpeg4_vaapi");
+            //pCodec = avcodec_find_decoder_by_name("mpeg4_vaapi");
             break;
         case CODEC_ID_H264:
         	m_Profile = VAProfileH264High;
         	m_SurfaceCount = 16+1;
-            pCodec = avcodec_find_decoder_by_name("h264_vaapi");
+            //pCodec = avcodec_find_decoder_by_name("h264_vaapi");
             break;
         case CODEC_ID_WMV3:
         	m_Profile = VAProfileVC1Main;
         	m_SurfaceCount = 2+1;
-            pCodec = avcodec_find_decoder_by_name("wmv3_vaapi");
+            //pCodec = avcodec_find_decoder_by_name("wmv3_vaapi");
             break;
         case CODEC_ID_VC1:
         	m_Profile = VAProfileVC1Advanced;
         	m_SurfaceCount = 2+1;
-            pCodec = avcodec_find_decoder_by_name("vc1_vaapi");
+            //pCodec = avcodec_find_decoder_by_name("vc1_vaapi");
             break;
         default:
             pCodec = 0;
     }
-    if (pCodec) {
+    //if (pCodec) {
         pContext->get_buffer = VAAPIDecoder::getBuffer;
         pContext->release_buffer = VAAPIDecoder::releaseBuffer;
         pContext->draw_horiz_band = NULL;
         pContext->get_format = VAAPIDecoder::getFormat;
         pContext->slice_flags = SLICE_FLAG_CODED_ORDER | SLICE_FLAG_ALLOW_FIELD;
-    } else {
-    	AVG_ASSERT_MSG(false, "Cannot find codec");
-    }
+    //}
 
     numProfiles = vaMaxNumProfiles(getVAAPIDisplay());
     pProfilesList = new VAProfile[numProfiles];
