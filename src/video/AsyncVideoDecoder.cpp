@@ -220,6 +220,7 @@ static ProfilingZoneID VAAPIDecodeProfilingZone("AsyncVideoDecoder: VAAPI", true
 FrameAvailableCode AsyncVideoDecoder::renderToBmps(vector<BitmapPtr>& pBmps,
         float timeWanted)
 {
+    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "timeWanted: " << timeWanted);
     AVG_ASSERT(getState() == DECODING);
     FrameAvailableCode frameAvailable;
     VideoMsgPtr pFrameMsg;
@@ -405,6 +406,7 @@ VideoMsgPtr AsyncVideoDecoder::getNextBmps(bool bWait)
         switch (pMsg->getType()) {
             case VideoMsg::FRAME:
             case VideoMsg::VDPAU_FRAME:
+            case VideoMsg::VAAPI_FRAME:
                 return pMsg;
             case VideoMsg::END_OF_FILE:
                 m_NumVSeeksDone = m_NumSeeksSent;
@@ -456,6 +458,8 @@ void AsyncVideoDecoder::handleVSeekMsg(VideoMsgPtr pMsg)
             returnFrame(dynamic_pointer_cast<VideoMsg>(pMsg));
             break;
         case VideoMsg::VDPAU_FRAME:
+            break;
+        case VideoMsg::VAAPI_FRAME:
             break;
         case VideoMsg::END_OF_FILE:
             m_NumVSeeksDone = m_NumSeeksSent;

@@ -24,6 +24,9 @@
 #ifdef AVG_ENABLE_VDPAU
 #include "VDPAUDecoder.h"
 #endif
+#ifdef AVG_ENABLE_VAAPI
+#include "VAAPIDecoder.h"
+#endif
 
 #include "../graphics/Filterfliprgba.h"
 #include "../graphics/Filterfliprgb.h"
@@ -478,7 +481,7 @@ public:
         : TestSuite("VideoTestSuite")
     {
         addAudioTests();
-        addVideoTests(false);
+        addVideoTests(true);
 #ifdef AVG_ENABLE_VDPAU
         if (VDPAUDecoder::isAvailable()) {
             addVideoTests(true);

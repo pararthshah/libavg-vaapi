@@ -22,6 +22,7 @@
 #include "VAAPIHelper.h"
 
 #include "../base/Exception.h"
+#include "../base/Logger.h"
 
 #include <iostream>
 
@@ -74,12 +75,17 @@ AVCodec* VAAPIDecoder::openCodec(AVCodecContext* pContext)
         	m_Profile = VAProfileMPEG2Main;
         	m_SurfaceCount = 2+1;
             //pCodec = avcodec_find_decoder_by_name("mpeg2_vaapi");
-            //pCodec->id = CODEC_ID_MPEG2VIDEO;
+            pContext->codec_id = CODEC_ID_MPEG2VIDEO;
             break;
         case CODEC_ID_MPEG4:
         	m_Profile = VAProfileMPEG4AdvancedSimple;
         	m_SurfaceCount = 2+1;
             //pCodec = avcodec_find_decoder_by_name("mpeg4_vaapi");
+            break;
+        case CODEC_ID_H263:
+        	m_Profile = VAProfileH264Baseline;
+        	m_SurfaceCount = 16+1;
+            //pCodec = avcodec_find_decoder_by_name("h264_vaapi");
             break;
         case CODEC_ID_H264:
         	m_Profile = VAProfileH264High;
@@ -108,6 +114,7 @@ AVCodec* VAAPIDecoder::openCodec(AVCodecContext* pContext)
     //}
 
     numProfiles = vaMaxNumProfiles(getVAAPIDisplay());
+    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "maxNumProfiles: " << numProfiles);
     pProfilesList = new VAProfile[numProfiles];
     if(!pProfilesList)
     	return 0;
@@ -116,14 +123,20 @@ AVCodec* VAAPIDecoder::openCodec(AVCodecContext* pContext)
     		pProfilesList, &numProfiles);
     if (status == VA_STATUS_SUCCESS) {
     	for( int i = 0; i < numProfiles; i++ ) {
+		AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "profile[" << i << "]: " << (unsigned int) pProfilesList[i]);
     		if (pProfilesList[i] == m_Profile) {
     			bSupportedProfile = true;
     			break;
     		}
     	}
+    } else {
+	AVG_ASSERT_MSG(false,
+    		       "vaQueryConfigProfiles return error");
+    	return 0;
     }
     delete[] pProfilesList;
     if (!bSupportedProfile) {
+	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "profile: " << (unsigned int) m_Profile);
     	AVG_ASSERT_MSG(false,
     			"Codec and profile not supported by the hardware");
     	return 0;
@@ -179,6 +192,7 @@ void VAAPIDecoder::drawHorizBand(struct AVCodecContext* pContext,
 AVPixelFormat VAAPIDecoder::getFormat(AVCodecContext* pContext,
 		const AVPixelFormat* pFmt)
 {
+    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getFormat.");
     switch (pContext->codec_id) {
         case CODEC_ID_H264:
         case CODEC_ID_MPEG1VIDEO:
@@ -192,6 +206,7 @@ AVPixelFormat VAAPIDecoder::getFormat(AVCodecContext* pContext,
 
 VAAPISurface* VAAPIDecoder::getFreeVaapiSurface()
 {
+	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getFreeVaapiSurface.");
 	/* Grab an unused surface, in case none are, try the oldest
 	 * XXX using the oldest is a workaround in case a problem happens with ffmpeg */
 	int i = 0, i_old = 0;
@@ -211,6 +226,7 @@ VAAPISurface* VAAPIDecoder::getFreeVaapiSurface()
 
 int VAAPIDecoder::getBufferInternal(AVCodecContext* pContext, AVFrame* pFrame)
 {
+	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getBufferInternal.");
 	if (m_pVAAPISurface == NULL) setupDecoder(pContext);
 	VAAPISurface* pVaapiSurface = getFreeVaapiSurface();
 	pVaapiSurface->m_RefCount = 1;
@@ -224,7 +240,8 @@ int VAAPIDecoder::getBufferInternal(AVCodecContext* pContext, AVFrame* pFrame)
 			pFrame->data[i] = (uint8_t*)pVaapiSurface->m_SurfaceID;
 	}
 
-	pFrame->type = FF_BUFFER_TYPE_USER;
+	//pFrame->type = FF_BUFFER_TYPE_USER;
+	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getBufferInternal finish.");
 	return 0;
 }
 
@@ -247,11 +264,12 @@ void VAAPIDecoder::render(AVCodecContext* pContext, const AVFrame* pFrame)
 
 void VAAPIDecoder::setupDecoder(AVCodecContext* pContext)
 {
-	if(m_Size.x == pContext->width && m_Size.y == pContext->height) {
-		pContext->hwaccel_context = &m_HWCtx;
-		//*pi_chroma = p_va->i_surface_chroma;
-		return;
-	}
+    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "setupDecoder.");
+    if(m_Size.x == pContext->width && m_Size.y == pContext->height) {
+	pContext->hwaccel_context = &m_HWCtx;
+	//*pi_chroma = p_va->i_surface_chroma;
+	return;
+    }
 
     // Create a VA configuration
     VAConfigAttrib attrib;
@@ -291,10 +309,12 @@ void VAAPIDecoder::setupDecoder(AVCodecContext* pContext)
     }
 
     m_PixFmt = pContext->pix_fmt;
+    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "setupDecoder finish.");
 }
 
 void VAAPIDecoder::createSurfaces(AVCodecContext* pContext)
 {
+    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "createSurfaces.");
 	AVG_ASSERT(pContext->width > 0 && pContext->height > 0);
 
 	m_Size = IntPoint(pContext->width, pContext->height);
@@ -386,7 +406,7 @@ void VAAPIDecoder::createSurfaces(AVCodecContext* pContext)
 
 	// Setup the ffmpeg hardware context
 	pContext->hwaccel_context = &m_HWCtx;
-
+	    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "hwaccel_context: " << pContext->hwaccel_context);
 	memset( &m_HWCtx, 0, sizeof(m_HWCtx));
 	m_HWCtx.display    = getVAAPIDisplay();
 	m_HWCtx.config_id  = m_ConfigID;
@@ -397,7 +417,7 @@ void VAAPIDecoder::createSurfaces(AVCodecContext* pContext)
 	/*error:
 	DestroySurfaces( p_va );
 	return VLC_EGENERIC;*/
-
+        AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "createSurfaces finish.");
 }
 
 void VAAPIDecoder::destroySurfaces()

@@ -413,8 +413,8 @@ void VideoDecoder::initVideoSupport()
         av_register_all();
         s_bInitialized = true;
         // Tune libavcodec console spam.
-        av_log_set_level(AV_LOG_DEBUG);
-//        av_log_set_level(AV_LOG_QUIET);
+//        av_log_set_level(AV_LOG_DEBUG);
+        av_log_set_level(AV_LOG_QUIET);
     }
 }
 
@@ -443,8 +443,10 @@ int VideoDecoder::openCodec(int streamIndex, bool bUseHardwareAcceleration)
         pCodec = avcodec_find_decoder(pContext->codec_id);
     }
     if (!pCodec) {
+	AVG_ASSERT_MSG(false, "No codec found");
         return -1;
     }
+    AVG_TRACE(Logger::category::MEMORY, Logger::severity::INFO, "calling avcodec");
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53, 8, 0)
     int rc = avcodec_open2(pContext, pCodec, 0);
 #else
@@ -452,8 +454,10 @@ int VideoDecoder::openCodec(int streamIndex, bool bUseHardwareAcceleration)
 #endif
 
     if (rc < 0) {
+	AVG_TRACE(Logger::category::MEMORY, Logger::severity::INFO, "avcodec_open failed");
         return -1;
     }
+    AVG_TRACE(Logger::category::MEMORY, Logger::severity::INFO, "openCodec successfully completed");
     return 0;
 }
 
