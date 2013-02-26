@@ -220,7 +220,7 @@ static ProfilingZoneID VAAPIDecodeProfilingZone("AsyncVideoDecoder: VAAPI", true
 FrameAvailableCode AsyncVideoDecoder::renderToBmps(vector<BitmapPtr>& pBmps,
         float timeWanted)
 {
-    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "timeWanted: " << timeWanted);
+    //AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "timeWanted: " << timeWanted);
     AVG_ASSERT(getState() == DECODING);
     FrameAvailableCode frameAvailable;
     VideoMsgPtr pFrameMsg;
@@ -232,6 +232,7 @@ FrameAvailableCode AsyncVideoDecoder::renderToBmps(vector<BitmapPtr>& pBmps,
         pFrameMsg = getBmpsForTime(timeWanted, frameAvailable);
     }
     if (frameAvailable == FA_NEW_FRAME) {
+        //AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "pFrameMsg: " << (unsigned int) pFrameMsg->getType());
         AVG_ASSERT(pFrameMsg);
         m_LastVideoFrameTime = pFrameMsg->getFrameTime();
         m_CurVideoFrameTime = m_LastVideoFrameTime;
@@ -375,8 +376,8 @@ VideoMsgPtr AsyncVideoDecoder::getBmpsForTime(float timeWanted,
                     unlockVDPAUSurface(pRenderState);
 #endif
 #ifdef AVG_ENABLE_VAAPI
-                    //void* pVaapiSurface = pFrameMsg->getVaapiSurface();
-
+                    VAAPISurface* pVaapiSurface = (VAAPISurface*) pFrameMsg->getVaapiSurface();
+		    unlockVAAPISurface(pVaapiSurface);
 #endif
                 }
             }

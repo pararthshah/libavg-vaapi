@@ -40,7 +40,8 @@ public:
     VASurfaceID  m_SurfaceID;
     int          m_RefCount;
     unsigned int m_Order;
-
+    VAImage	 m_Image;
+    int		 m_bBound;
     VAAPIDecoder* m_pDecoder;
 
 };
@@ -58,6 +59,8 @@ public:
     VAImage getImage();
     IntPoint getSize();
 
+    void unlockSurface(VAAPISurface* pVaapiSurface);
+
 private:
     // Callbacks
     static int getBuffer(AVCodecContext* pContext, AVFrame* pFrame);
@@ -68,7 +71,6 @@ private:
 
     VAAPISurface* getFreeVaapiSurface();
     int getBufferInternal(AVCodecContext* pContext, AVFrame* pFrame);
-    void releaseBufferInternal(struct AVCodecContext* pContext, AVFrame* pFrame);
     void render(AVCodecContext* pContext, const AVFrame* pFrame);
     void setupDecoder(AVCodecContext* pContext);
     void createSurfaces(AVCodecContext* pContext);
@@ -79,7 +81,7 @@ private:
     VAConfigID    m_ConfigID;
     VAContextID   m_ContextID;
 
-    struct vaapi_context m_HWCtx;
+    struct vaapi_context* m_HWCtx;
 
     int          m_SurfaceCount;
     unsigned int m_SurfaceOrder;

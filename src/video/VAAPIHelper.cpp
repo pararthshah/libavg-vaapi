@@ -77,6 +77,7 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 {
 	VAAPIDecoder* pVaapiDecoder = pVaapiSurface->m_pDecoder;
 	VASurfaceID surface_id = pVaapiSurface->m_SurfaceID;
+	VAImage image = pVaapiSurface->m_Image;
 
 #if VA_CHECK_VERSION(0,31,0)
 	if(vaSyncSurface(getVAAPIDisplay(), pVaapiSurface->m_SurfaceID)) {
@@ -91,16 +92,16 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 	/* XXX vaDeriveImage may be better but it is not supported by
 	 * my setup.
 	 */
-
-	if(vaGetImage(getVAAPIDisplay(), surface_id, 0, 0, pVaapiDecoder->getSize().x,
-			pVaapiDecoder->getSize().y, pVaapiDecoder->getImage().image_id) ) {
-		AVG_ASSERT_MSG(false, "vaGetImage returned error");
-		return;
+	if (pVaapiSurface->m_bBound == 0) {
+		if(vaGetImage(getVAAPIDisplay(), surface_id, 0, 0, pVaapiDecoder->getSize().x,
+				pVaapiDecoder->getSize().y, image.image_id) ) {
+			AVG_ASSERT_MSG(false, "vaGetImage returned error");
+			return;
+		}
 	}
 
 	void *p_base;
-	if(vaMapBuffer(getVAAPIDisplay(), pVaapiDecoder->getImage().buf,
-			&p_base)) {
+	if(vaMapBuffer(getVAAPIDisplay(), image.buf, &p_base)) {
 		AVG_ASSERT_MSG(false, "vaMapBuffer returned error");
 		return;
 	}
@@ -117,7 +118,7 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 	};
 
 	const uint32_t i_fourcc = pVaapiDecoder->getImage().format.fourcc;
-	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getPlanesFromVAAPI: " << i_fourcc);
+	//AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getPlanesFromVAAPI: " << i_fourcc);
 
 	if(i_fourcc == VA_FOURCC('Y','V','1','2') ||
 			i_fourcc == VA_FOURCC('I','4','2','0')) {
@@ -126,8 +127,9 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 		size_t  pi_pitch[3];
 
 		for( int i = 0; i < 3; i++ ) {
-			pp_plane[i] = (uint8_t*)p_base + pVaapiDecoder->getImage().offsets[i];
-			pi_pitch[i] = pVaapiDecoder->getImage().pitches[i];
+			const int i_src = (b_swap_uv && i != 0) ? (3-i) : i;
+			pp_plane[i] = (uint8_t*)p_base + image.offsets[i_src];
+			pi_pitch[i] = image.pitches[i_src];
 		}
 
 		copyPlane(dest[0], pitches[0], pp_plane[0], pi_pitch[0],
@@ -155,12 +157,13 @@ void getPlanesFromVAAPI(VAAPISurface* pVaapiSurface,
 				pVaapiDecoder->getSize().x/2, pVaapiDecoder->getSize().y/2);
 	}
 
-	if(vaUnmapBuffer(getVAAPIDisplay(), pVaapiDecoder->getImage().buf)) {
+	if(vaUnmapBuffer(getVAAPIDisplay(), image.buf)) {
 		AVG_ASSERT_MSG(false, "vaUnmapBuffer returned error");
 		return;
 	}
 
-    //unlockVAAPISurface(pVaapiSurface);
+    //AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "getPlanesFromVaapi finished.");
+    unlockVAAPISurface(pVaapiSurface);
 }
 
 void getBitmapFromVAAPI(VAAPISurface* pVaapiSurface, BitmapPtr pBmpDest)
@@ -197,10 +200,12 @@ void splitPlanes(uint8_t *dstu, size_t dstu_pitch, uint8_t *dstv,
     }
 }
 
-/*void unlockVAAPISurface(VAAPISurface* pVaapiSurface)
+void unlockVAAPISurface(VAAPISurface* pVaapiSurface)
 {
-    pRenderState->state &= ~FF_VDPAU_STATE_USED_FOR_REFERENCE;
-}*/
+    VAAPIDecoder* pVaapiDecoder = pVaapiSurface->m_pDecoder;
+    //AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "unlockVAAPISurface");
+    pVaapiDecoder->unlockSurface(pVaapiSurface);    
+}
 
 }
 

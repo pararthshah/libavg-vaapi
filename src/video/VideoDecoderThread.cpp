@@ -73,6 +73,7 @@ bool VideoDecoderThread::work()
             ScopeTimer timer(PacketWaitProfilingZone);
             pMsg = m_PacketQ.pop(true);
         }
+	AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "videoDecoderThread packet: " << pMsg->getType());
         switch (pMsg->getType()) {
             case VideoMsg::PACKET:
                 decodePacket(pMsg->getPacket());
@@ -154,7 +155,7 @@ void VideoDecoderThread::sendFrame(AVFrame& frame)
         vdpau_render_state *pRenderState = (vdpau_render_state *)frame.data[0];
         pMsg->setVDPAUFrame(pRenderState, m_pFrameDecoder->getCurTime());
     } else if (m_bUseVAAPI) {
-    	void *pVaapiSurface = (void *)frame.data[0];
+    	void *pVaapiSurface = (void *)frame.opaque;
     	pMsg->setVAAPIFrame(pVaapiSurface, m_pFrameDecoder->getCurTime());
     } else {
         vector<BitmapPtr> pBmps;

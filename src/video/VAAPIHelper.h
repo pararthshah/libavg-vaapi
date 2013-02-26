@@ -43,8 +43,8 @@ void copyPlane(uint8_t *dst, size_t dst_pitch, const uint8_t *src,
 		size_t src_pitch, unsigned width, unsigned height);
 void splitPlanes(uint8_t *dstu, size_t dstu_pitch, uint8_t *dstv,
 		size_t dstv_pitch, const uint8_t *src, size_t src_pitch,
-		unsigned width, unsigned height)
-//void unlockVAAPISurface(VAAPISurface* pVaapiSurface);
+		unsigned width, unsigned height);
+void unlockVAAPISurface(VAAPISurface* pVaapiSurface);
 
 }
 #endif /* VAAPIHELPER_H_ */

@@ -144,6 +144,7 @@ class DecoderTest: public GraphicsTest {
         string getMediaLoc(const string& sFilename)
         {
             return getSrcDirName()+"../test/media/"+sFilename;
+	    //return "/home/vijay/Videos/"+sFilename;
         }
 
     private:
@@ -175,9 +176,10 @@ class VideoDecoderTest: public DecoderTest {
 
         void runTests()
         {
+	    //basicFileTest("Castle.avi", 300);
             basicFileTest("mpeg1-48x48.mpg", 30);
-            basicFileTest("mjpeg-48x48.avi", 202);
-            testSeeks("mjpeg-48x48.avi");
+            //basicFileTest("mjpeg-48x48.avi", 202);
+            testSeeks("mpeg1-48x48.mpg");
         }
 
     private:
@@ -410,7 +412,7 @@ class AVDecoderTest: public DecoderTest {
 
         void runTests()
         {
-            basicFileTest("mpeg1-48x48-sound.avi", 30);
+            basicFileTest("mpeg1-48x48.mpg", 30);
         }
 
     private:
@@ -480,8 +482,8 @@ public:
     VideoTestSuite() 
         : TestSuite("VideoTestSuite")
     {
-        addAudioTests();
-        addVideoTests(true);
+        //addAudioTests();
+        addVideoTests(true); //addVideoTests(false);
 #ifdef AVG_ENABLE_VDPAU
         if (VDPAUDecoder::isAvailable()) {
             addVideoTests(true);
@@ -501,7 +503,7 @@ private:
 
     void addVideoTests(bool bUseHardwareAcceleration)
     {
-        addTest(TestPtr(new VideoDecoderTest(false, bUseHardwareAcceleration)));
+        //addTest(TestPtr(new VideoDecoderTest(false, bUseHardwareAcceleration)));
         addTest(TestPtr(new VideoDecoderTest(true, bUseHardwareAcceleration)));
 
         addTest(TestPtr(new AVDecoderTest(bUseHardwareAcceleration)));

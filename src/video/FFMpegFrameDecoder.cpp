@@ -75,6 +75,8 @@ bool FFMpegFrameDecoder::decodePacket(AVPacket* pPacket, AVFrame& frame,
     ScopeTimer timer(DecodePacketProfilingZone);
     int bGotPicture = 0;
     AVCodecContext* pContext = m_pStream->codec;
+    //pContext->debug = 0x000FFFFF; 
+    pContext->debug_mv = 0x0000000F;
     AVG_ASSERT(pPacket);
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52, 31, 0)
     int len1 = avcodec_decode_video2(pContext, &frame, &bGotPicture, pPacket);
@@ -82,6 +84,8 @@ bool FFMpegFrameDecoder::decodePacket(AVPacket* pPacket, AVFrame& frame,
     int len1 = avcodec_decode_video(pContext, &frame, &bGotPicture, pPacket->data,
             pPacket->size);
 #endif
+    //AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "FFMpegDecoder hwaccel: " << pContext->hwaccel->name);
+    AVG_TRACE(Logger::category::PLAYER, Logger::severity::INFO, "FFMpegDecoder : " << len1 << " " << pPacket->size << " " << bGotPicture);
     if (len1 > 0) {
         AVG_ASSERT(len1 == pPacket->size);
     }
